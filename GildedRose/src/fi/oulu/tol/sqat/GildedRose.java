@@ -68,7 +68,7 @@ public class GildedRose {
                     }
                 }
             }
-
+            //VÄHENNETÄÄN MYYNTIPÄIVÄÄ
             if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))
             {
                 items.get(i).setSellIn(items.get(i).getSellIn() - 1);
@@ -84,6 +84,7 @@ public class GildedRose {
                         {
                             if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))
                             {
+                            	//VÄHENNETÄÄN LAATUA KAHDELLA KOSKA MYYNTIPÄIVÄT LOPPU
                                 items.get(i).setQuality(items.get(i).getQuality() - 1);
                             }
                         }
