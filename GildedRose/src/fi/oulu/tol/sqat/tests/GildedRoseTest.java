@@ -17,12 +17,15 @@ import fi.oulu.tol.sqat.Item;
  * - myyntipäivät vähenevät ja voivat mennä yli nollan
  * - laatu ei mene yli nollan
  * - Laatu laskee kaksinkertaisella vauhdilla bbd:n mentyä
- * - TODO: Brien laatu kasvaa myyntipäivien vähentyessä
- * - TODO: Sulfuras ei myyntiä tai laadun laskemista
+ * - Laatu laskee nollaan viimeisen myyntipäivän jälkeen konserttilipulla
+ * -  Sulfuras ei myyntiä tai laadun laskemista 
+ * 
+ * 
  * - TODO: Konserttilippujen laatu paranee vanhetessa
- * - TODO: Laatu erikoistuotteilla paranee kahdella kun myyntipäiviä on alle 10
- * - TODO: Laatu erikoistuotteilla paranee kolmella kun myyntipäiviä on alle 5
- * - TODO: Laatu laskee nollaan viimeisen myyntipäivän jälkeen
+ * - TODO: Laatu erikoistuotteilla paranee kahdella kun myyntipäiviä on alle 10, brie done
+ * - TODO: Laatu erikoistuotteilla paranee kolmella kun myyntipäiviä on alle 5, brie done
+ * - TODO: mitä brien laadulle käy kun sellIn < 0
+ * 
  */
 
 
@@ -67,13 +70,13 @@ public class GildedRoseTest {
 	
 	@Test
 	public void TestDecreasedQuality_AllButSpecialProducts() {
-		//konstruktorissa luodaan lista
+
 		GildedRose inn = new GildedRose();
-		//asetetaan listaan tavara
+
 		inn.setItem(new Item("+5 Dexterity Vest", 10, 20));
 		inn.setItem(new Item("Elixir of the Mongoose", 5, 7));
 		inn.setItem(new Item("Conjured Mana Cake", 3, 6));
-		//asetetaan majatalon tuotteet listaan
+
 		List<Item> items = inn.getItems();
 		
 		List<Integer> originalQualities = new ArrayList<>();
@@ -92,11 +95,11 @@ public class GildedRoseTest {
 	
 	@Test
 	public void TestSellByDateToZero_NormalItems() {
-		//konstruktorissa luodaan lista
+
 		GildedRose inn = new GildedRose();
-		//asetetaan listaan tavara
+
 		inn.setItem(new Item("+5 Dexterity Vest", 10, 20));
-		//asetetaan majatalon tuotteet listaan
+
 		List<Item> items = inn.getItems();
 		
 		
@@ -109,14 +112,13 @@ public class GildedRoseTest {
 	}
 	
 	@Test
-	public void TestQualityAfterBBD_NormalItems() {
-		//konstruktorissa luodaan lista
+	public void TestQualityAfterBBD_NormalItem() {
+
 				GildedRose inn = new GildedRose();
-				//asetetaan listaan tavara
+
 				inn.setItem(new Item("+5 Dexterity Vest", 10, 20));
-				//asetetaan majatalon tuotteet listaan
+
 				List<Item> items = inn.getItems();
-				
 				
 				do {
 					inn.oneDay();
@@ -124,19 +126,85 @@ public class GildedRoseTest {
 				
 				assertEquals("Failed to decrease the quality", 8, items.get(0).getQuality());
 				
+				inn.oneDay();
+				
+				assertEquals("Failed to decrease the quality", 6, items.get(0).getQuality());
+				
 	}
 	
 	@Test
-	public void TestBrieQuality_IncreaseAndMAX_VALUE() {
+	public void TestQualityAfterBBD_Backstage() {
 		GildedRose inn = new GildedRose();
-		inn.setItem(new Item("Aged Brie", 2, 0));
+		inn.setItem(new Item("Backstage passes to a TAFKAL80ETC concert", 15, 20));
 		
 		List<Item> items = inn.getItems();
 		
 		do {
 			inn.oneDay();
-		}while(items.get(0).getQuality() < 50);
+		}while(items.get(0).getSellIn() > -1);
 		
-		assertEquals("Failed to increase brie quality to max", 50, items.get(0).getQuality());
+		assertEquals("Failed to decrease the quality after concert is over", 0, items.get(0).getQuality());
+	}
+	
+	@Test
+	public void TestBrieQuality_IncreaseWhileSellInDecreased() {
+		//SHOULD THE QUALITY DOUBLE ON THE TENTH DAY
+		/*for example. quality is 9 on the 11th day
+		 * should it be 11 on the 10th day or just 10
+		 	and 12 on the 9th day
+		 */
+		GildedRose inn = new GildedRose();
+		inn.setItem(new Item("Aged Brie", 20, 0));
+		List<Item> items = inn.getItems();
+		
+		do {
+			inn.oneDay();
+		}while(items.get(0).getSellIn() > 11);
+		
+		assertEquals("Failed to increase brie quality correctly", 9, items.get(0).getQuality());
+		
+		//Testing the quality increase rate after 10 days
+		inn.oneDay();
+		int quality = items.get(0).getQuality();
+		inn.oneDay();
+
+		//the quality increases by two on the ninth day
+		assertEquals("The increase rate of quality after 10 days is incorrect", quality + 2, items.get(0).getQuality());
+		
+		//Testing the quality increase rate when there are 5 days left to sell
+		do {
+			inn.oneDay();
+		}while(items.get(0).getSellIn() > 6);
+		
+
+		inn.oneDay();
+		quality = items.get(0).getQuality();
+		inn.oneDay();
+
+		assertEquals("The increase rate of quality after 5 days is incorrect", quality + 3, items.get(0).getQuality());
+	}
+	
+	@Test
+	public void bireQualityAfterBBD() {
+		//what should happen to brie after sellIn is < 0, keep increasing by three or decrease?
+		GildedRose inn = new GildedRose();
+		inn.setItem(new Item("Aged Brie", 0, 20));
+		List<Item> items = inn.getItems();
+		
+		inn.oneDay();
+		
+		System.out.println(items.get(0).getSellIn());//-1
+		System.out.println(items.get(0).getQuality());//23
+	}
+	
+	@Test
+	public void legendaryQualityNeverAlters() {
+		GildedRose inn = new GildedRose();
+		inn.setItem(new Item("Sulfuras, Hand of Ragnaros", 0, 80));
+		List<Item> items = inn.getItems();
+		
+		inn.oneDay();
+		
+		assertEquals("Legendary items quality altered", 80, items.get(0).getQuality());
 	}
 }
