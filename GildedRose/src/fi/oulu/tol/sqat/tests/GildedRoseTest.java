@@ -11,25 +11,6 @@ import fi.oulu.tol.sqat.GildedRose;
 import fi.oulu.tol.sqat.Item;
 
 
-
-/*TESTATAAN:
- * - laatu heikkenee yhden päivän jälkeen
- * - myyntipäivät vähenevät ja voivat mennä yli nollan
- * - laatu ei mene yli nollan
- * - Laatu laskee kaksinkertaisella vauhdilla bbd:n mentyä
- * - Laatu laskee nollaan viimeisen myyntipäivän jälkeen konserttilipulla
- * -  Sulfuras ei myyntiä tai laadun laskemista 
- * 
- * 
- * - TODO: Konserttilippujen laatu paranee vanhetessa
- * - TODO: Laatu erikoistuotteilla paranee kahdella kun myyntipäiviä on alle 10, brie done
- * - TODO: Laatu erikoistuotteilla paranee kolmella kun myyntipäiviä on alle 5, brie done
- * - TODO: mitä brien laadulle käy kun sellIn < 0
- * 
- */
-
-
-
 public class GildedRoseTest {
 
 	@Test
@@ -50,14 +31,23 @@ public class GildedRoseTest {
 		//assert quality has decreased by one
 		assertEquals("Failed quality for Dexterity Vest", 19, quality);
 	}
+//LOOP TESTING
+	@Test
+	public void emptyInn() {
+		GildedRose inn = new GildedRose();
+		inn.oneDay();
+		assertTrue(inn.getItems().isEmpty());
+	}
+	
+//NORMAL PRODUCTS
 	
 	@Test
 	public void TestDecreasedQuality_OneDay() {
-		//konstruktorissa luodaan lista
+
 		GildedRose inn = new GildedRose();
-		//asetetaan listaan tavara
+
 		inn.setItem(new Item("+5 Dexterity Vest", 10, 20));
-		//asetetaan majatalon tuotteet listaan
+
 		List<Item> items = inn.getItems();
 
 		int quality = items.get(0).getQuality() - 1;
@@ -66,6 +56,16 @@ public class GildedRoseTest {
 		
 		assertEquals("Failed quality for Dexterity Vest", quality, items.get(0).getQuality());
 		
+	}
+	
+	@Test
+	public void TestNormalProductQuality_IsNotNegative() {
+		GildedRose inn = new GildedRose();
+		inn.setItem(new Item("+5 Dexterity Vest", 10, 0));
+		List<Item> items = inn.getItems();
+		inn.oneDay();
+		
+		assertEquals("Quality decreased to negative number", 0, items.get(0).getQuality());
 	}
 	
 	@Test
@@ -94,6 +94,20 @@ public class GildedRoseTest {
 	}
 	
 	@Test
+	public void TestQualityDecreaseDoubles() {
+		GildedRose inn = new GildedRose();
+		
+		inn.setItem(new Item("Elixir of the Mongoose", 0, 10));
+		
+		List<Item> items = inn.getItems();
+		
+		inn.oneDay();
+		
+		assertEquals("Failed to double the quality decrease", 8, items.get(0).getQuality());
+	}
+	
+	
+	@Test
 	public void TestSellByDateToZero_NormalItems() {
 
 		GildedRose inn = new GildedRose();
@@ -114,45 +128,125 @@ public class GildedRoseTest {
 	@Test
 	public void TestQualityAfterBBD_NormalItem() {
 
-				GildedRose inn = new GildedRose();
+			GildedRose inn = new GildedRose();
 
-				inn.setItem(new Item("+5 Dexterity Vest", 10, 20));
+			inn.setItem(new Item("+5 Dexterity Vest", 10, 20));
 
-				List<Item> items = inn.getItems();
+			List<Item> items = inn.getItems();
 				
-				do {
-					inn.oneDay();
-				}while(items.get(0).getSellIn() > -1);
-				
-				assertEquals("Failed to decrease the quality", 8, items.get(0).getQuality());
-				
+			do {
 				inn.oneDay();
+			}while(items.get(0).getSellIn() > -1);
 				
-				assertEquals("Failed to decrease the quality", 6, items.get(0).getQuality());
+			assertEquals("Failed to decrease the quality", 8, items.get(0).getQuality());
+				
+			inn.oneDay();
+				
+			assertEquals("Failed to decrease the quality", 6, items.get(0).getQuality());
 				
 	}
 	
 	@Test
+	public void TestNegativeQuality_ZeroSellIn_NoFunctionality() {
+		GildedRose inn = new GildedRose();
+
+		inn.setItem(new Item("+5 Dexterity Vest", 0, -1));
+
+		List<Item> items = inn.getItems();
+		
+		inn.oneDay();
+		
+		assertEquals("Changes in quality", -1, items.get(0).getQuality());
+	}
+	
+	@Test
+	public void TestQualityIsZero() {
+		GildedRose inn = new GildedRose();
+
+		inn.setItem(new Item("+5 Dexterity Vest", 0, 0));
+
+		List<Item> items = inn.getItems();
+		
+		inn.oneDay();
+		
+		assertEquals("Changes in quality", 0, items.get(0).getQuality());
+	}
+	
+////BACKSTAGE	
+
+	@Test
 	public void TestQualityAfterBBD_Backstage() {
 		GildedRose inn = new GildedRose();
-		inn.setItem(new Item("Backstage passes to a TAFKAL80ETC concert", 15, 20));
+		inn.setItem(new Item("Backstage passes to a TAFKAL80ETC concert", 5, 20));
 		
 		List<Item> items = inn.getItems();
 		
 		do {
 			inn.oneDay();
-		}while(items.get(0).getSellIn() > -1);
+		}while(items.get(0).getSellIn() > 0);
+
+		inn.oneDay();
 		
 		assertEquals("Failed to decrease the quality after concert is over", 0, items.get(0).getQuality());
 	}
 	
 	@Test
+	public void TestBackstageQuality_Over50() {
+		GildedRose inn = new GildedRose();
+		inn.setItem(new Item("Backstage passes to a TAFKAL80ETC concert", 5, 50));
+		
+		List<Item> items = inn.getItems();
+		
+		inn.oneDay();
+		
+		assertEquals("Failed to limit quality increase", 50, items.get(0).getQuality());
+	}
+	
+	@Test
+	public void TestBackstageCorrectQualityIncrease() {
+		GildedRose inn = new GildedRose();
+		inn.setItem(new Item("Backstage passes to a TAFKAL80ETC concert", 20, 0));
+		
+		List<Item> items = inn.getItems();
+		
+		do {
+			inn.oneDay();
+		}while(items.get(0).getSellIn() > 11);
+		
+		assertEquals("Failed to increase backstage quality correctly", 9, items.get(0).getQuality());
+		
+		//Testing the quality increase rate after 10 days
+		int quality = items.get(0).getQuality();
+		inn.oneDay();
+
+		assertEquals("The increase rate of quality after 10 days is incorrect", quality + 2, items.get(0).getQuality());
+		
+		//Testing the quality increase rate when there are 5 days left to sell
+		do {
+			inn.oneDay();
+		}while(items.get(0).getSellIn() > 6);
+		
+		quality = items.get(0).getQuality();
+		inn.oneDay();
+
+		assertEquals("The increase rate of quality after 5 days is incorrect", quality + 3, items.get(0).getQuality());
+		
+	}
+	
+////BRIE
+	@Test
+	public void TestBrieQuality_IsNotNegative() {
+		GildedRose inn = new GildedRose();
+		inn.setItem(new Item("Aged Brie", 0, 0));
+		List<Item> items = inn.getItems();
+		
+			inn.oneDay();
+
+			assertEquals("Failed to change brie quality correctly", 3, items.get(0).getQuality());
+	}
+	
+	@Test
 	public void TestBrieQuality_IncreaseWhileSellInDecreased() {
-		//SHOULD THE QUALITY DOUBLE ON THE TENTH DAY
-		/*for example. quality is 9 on the 11th day
-		 * should it be 11 on the 10th day or just 10
-		 	and 12 on the 9th day
-		 */
 		GildedRose inn = new GildedRose();
 		inn.setItem(new Item("Aged Brie", 20, 0));
 		List<Item> items = inn.getItems();
@@ -164,11 +258,9 @@ public class GildedRoseTest {
 		assertEquals("Failed to increase brie quality correctly", 9, items.get(0).getQuality());
 		
 		//Testing the quality increase rate after 10 days
-		inn.oneDay();
 		int quality = items.get(0).getQuality();
 		inn.oneDay();
 
-		//the quality increases by two on the ninth day
 		assertEquals("The increase rate of quality after 10 days is incorrect", quality + 2, items.get(0).getQuality());
 		
 		//Testing the quality increase rate when there are 5 days left to sell
@@ -176,8 +268,6 @@ public class GildedRoseTest {
 			inn.oneDay();
 		}while(items.get(0).getSellIn() > 6);
 		
-
-		inn.oneDay();
 		quality = items.get(0).getQuality();
 		inn.oneDay();
 
@@ -185,17 +275,24 @@ public class GildedRoseTest {
 	}
 	
 	@Test
-	public void bireQualityAfterBBD() {
-		//what should happen to brie after sellIn is < 0, keep increasing by three or decrease?
+	public void TestBrieQuality_NotOVer50() {
 		GildedRose inn = new GildedRose();
-		inn.setItem(new Item("Aged Brie", 0, 20));
+		inn.setItem(new Item("Aged Brie", 12, 50));
 		List<Item> items = inn.getItems();
 		
 		inn.oneDay();
 		
-		System.out.println(items.get(0).getSellIn());//-1
-		System.out.println(items.get(0).getQuality());//23
+		assertEquals("Failed to limit quality increase", 50, items.get(0).getQuality());
+		
+		GildedRose pub = new GildedRose();
+		pub.setItem(new Item("Aged Brie", 12, 49));
+		pub.oneDay();
+		pub.oneDay();
+		assertEquals("Failed to limit quality increase", 50, items.get(0).getQuality());
+		
 	}
+	
+////LEGENDARY
 	
 	@Test
 	public void legendaryQualityNeverAlters() {
@@ -205,6 +302,16 @@ public class GildedRoseTest {
 		
 		inn.oneDay();
 		
+		assertEquals("Legendary items quality altered", 80, items.get(0).getQuality());
+	}
+	
+	@Test
+	public void legendarySellInBelowZero() {
+		GildedRose inn = new GildedRose();
+		inn.setItem(new Item("Sulfuras, Hand of Ragnaros", -1, 80));
+		List<Item> items = inn.getItems();
+		
+		inn.oneDay();
 		assertEquals("Legendary items quality altered", 80, items.get(0).getQuality());
 	}
 }

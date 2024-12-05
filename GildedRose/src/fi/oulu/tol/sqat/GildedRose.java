@@ -44,29 +44,30 @@ public class GildedRose {
             }
             else//täällä kasvaa vain brie tai backstage
             {
-                if (items.get(i).getQuality() < 50)
+                if (items.get(i).getQuality() < 50 && items.get(i).getSellIn() > 11)
                 {
                     items.get(i).setQuality(items.get(i).getQuality() + 1);
-                    //tarviiko tätä tarkistusta
-                    if ("Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName()) || "Aged Brie".equals(items.get(i).getName()))
+                }
+                if ("Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName()) || "Aged Brie".equals(items.get(i).getName()))
+                   {
+                	if (items.get(i).getSellIn() <= 11) 
+                	{
+                		
+                        if(items.get(i).getQuality() < 50) {
+                        	items.get(i).setQuality(items.get(i).getQuality() + 2);
+                        	}
+                    }
+                	if (items.get(i).getSellIn() <= 6)//M
                     {
-                        if (items.get(i).getSellIn() < 11 && items.get(i).getQuality() < 50) //this 11 or 12???
+                        if (items.get(i).getQuality() < 50)
                         {
-                                items.get(i).setQuality(items.get(i).getQuality() + 1);
-                        }
-
-                        if (items.get(i).getSellIn() < 6)
-                        {
-                            if (items.get(i).getQuality() < 50)
-                            {
-                                items.get(i).setQuality(items.get(i).getQuality() + 1);
-                            }
+                            items.get(i).setQuality(items.get(i).getQuality() + 1);
                         }
                     }
-                }
+                   } 
             }
             //VÄHENNETÄÄN MYYNTIPÄIVÄÄ
-            if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))//joku muu kuin legendaarinen == myyntipäivä vähenee
+            if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))
             {
                 items.get(i).setSellIn(items.get(i).getSellIn() - 1);
             }
@@ -77,11 +78,10 @@ public class GildedRose {
                 {
                     if (!"Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName()))
                     {
-                        if (items.get(i).getQuality() > 0)
+                    	if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))
                         {
-                            if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))
+                            if (items.get(i).getQuality() > 0)//M
                             {
-                            	//VÄHENNETÄÄN LAATUA KAHDELLA KOSKA MYYNTIPÄIVÄT LOPPU
                                 items.get(i).setQuality(items.get(i).getQuality() - 1);
                             }
                         }
@@ -93,9 +93,9 @@ public class GildedRose {
                 }
                 else
                 {
-                    if (items.get(i).getQuality() < 50)
+                    if (items.get(i).getQuality() < 50)//M
                     {
-                        items.get(i).setQuality(items.get(i).getQuality() );
+                        items.get(i).setQuality(items.get(i).getQuality() );//M
                     }
                 }
             }
