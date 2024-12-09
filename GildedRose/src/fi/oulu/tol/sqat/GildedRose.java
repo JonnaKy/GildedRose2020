@@ -29,7 +29,7 @@ public class GildedRose {
 
 	
     public static void updateQuality()
-    {//quality is handled before the sellIn is decreased
+    {
         for (int i = 0; i < items.size(); i++)
         {
             if ((!"Aged Brie".equals(items.get(i).getName())) && !"Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName())) 
@@ -42,7 +42,7 @@ public class GildedRose {
                     }
                 }
             }
-            else//täällä kasvaa vain brie tai backstage
+            else
             {
                 if (items.get(i).getQuality() < 50 && items.get(i).getSellIn() > 11)
                 {
@@ -66,13 +66,13 @@ public class GildedRose {
                     }
                    } 
             }
-            //VÄHENNETÄÄN MYYNTIPÄIVÄÄ
+            
             if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))
             {
                 items.get(i).setSellIn(items.get(i).getSellIn() - 1);
             }
 
-            if (items.get(i).getSellIn() < 0)//myyntipäivät loppu
+            if (items.get(i).getSellIn() < 0)
             {
                 if (!"Aged Brie".equals(items.get(i).getName()))
                 {
@@ -93,9 +93,9 @@ public class GildedRose {
                 }
                 else
                 {
-                    if (items.get(i).getQuality() < 50)//M
+                    if (items.get(i).getQuality() < 50)
                     {
-                        items.get(i).setQuality(items.get(i).getQuality() );//M
+                        items.get(i).setQuality(items.get(i).getQuality() );
                     }
                 }
             }
